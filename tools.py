@@ -1,22 +1,32 @@
+
 from langchain.tools import tool
 import requests
 from bs4 import BeautifulSoup
 from tavily import TavilyClient
 import os
+import streamlit as st
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
 # =========================================================
-# TAVILY CLIENT
+# TAVILY API KEY CONFIGURATION
 # =========================================================
 
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+try:
+    TAVILY_API_KEY = st.secrets.get("TAVILY_API_KEY")
+except Exception:
+    TAVILY_API_KEY = None
+
+# Fall back to the local .env file
+if not TAVILY_API_KEY:
+    TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 
 if not TAVILY_API_KEY:
     raise ValueError(
-        "TAVILY_API_KEY is missing. Please add it to your .env file."
+        "TAVILY_API_KEY is missing. Add it to your local .env "
+        "file or configure it in Streamlit Cloud Secrets."
     )
 
 tavily = TavilyClient(api_key=TAVILY_API_KEY)
@@ -34,9 +44,7 @@ def web_search(query: str) -> str:
 
     Returns titles, URLs and snippets.
     """
-
     try:
-
         results = tavily.search(
             query=query,
             max_results=5
@@ -45,7 +53,6 @@ def web_search(query: str) -> str:
         output = []
 
         for result in results.get("results", []):
-
             title = result.get("title", "No title")
             url = result.get("url", "No URL")
             content = result.get("content", "")
@@ -62,7 +69,6 @@ def web_search(query: str) -> str:
         return "\n---\n".join(output)
 
     except Exception as e:
-
         return f"Web search failed: {str(e)}"
 
 
@@ -76,9 +82,7 @@ def scrape_url(url: str) -> str:
     Scrape a webpage and return clean text content
     for deeper research.
     """
-
     try:
-
         response = requests.get(
             url,
             timeout=10,
@@ -123,9 +127,7 @@ def scrape_url(url: str) -> str:
         return text[:8000]
 
     except requests.exceptions.RequestException as e:
-
         return f"Could not access URL: {str(e)}"
 
     except Exception as e:
-
         return f"Could not scrape URL: {str(e)}"
