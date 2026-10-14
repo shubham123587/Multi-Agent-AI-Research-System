@@ -14,21 +14,24 @@ load_dotenv()
 # TAVILY API KEY CONFIGURATION
 # =========================================================
 
+# First, read the key from Streamlit Cloud TOML Secrets
 try:
     TAVILY_API_KEY = st.secrets.get("TAVILY_API_KEY")
 except Exception:
     TAVILY_API_KEY = None
 
-# Fall back to the local .env file
+# If the key is not found, fall back to the local .env file
 if not TAVILY_API_KEY:
     TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 
+# Validate the API key
 if not TAVILY_API_KEY:
     raise ValueError(
-        "TAVILY_API_KEY is missing. Add it to your local .env "
-        "file or configure it in Streamlit Cloud Secrets."
+        "TAVILY_API_KEY is missing. Add it to Streamlit Cloud "
+        "Secrets or your local .env file."
     )
 
+# Initialize Tavily client
 tavily = TavilyClient(api_key=TAVILY_API_KEY)
 
 
